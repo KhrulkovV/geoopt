@@ -16,3 +16,4 @@ from . import stereographic
 from . import scaled
 from .scaled import Scaled
 from .lorentz import Lorentz
+from .lorentz import math as hyperboloid_math
