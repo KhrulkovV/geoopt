@@ -117,7 +117,9 @@ class Lorentz(Manifold):
     def inner(
         self, x: torch.Tensor, u: torch.Tensor, v: torch.Tensor = None, *, keepdim=False, dim=-1,
     ) -> torch.Tensor:
-        return math.inner(u, v)
+        if v is None:
+            v = u
+        return math.inner(u, v, keepdim=keepdim, dim=dim, k=self.k)
 
     def inner0(self, v: torch.Tensor = None, *, keepdim=False, dim=-1,) -> torch.Tensor:
         return math.inner0(v, k=self.k)
