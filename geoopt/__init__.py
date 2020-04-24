@@ -25,6 +25,7 @@ from .manifolds import (
     ProductManifold,
     Scaled,
     BirkhoffPolytope,
+    Lorentz
 )
 
 __version__ = "0.1.2"
