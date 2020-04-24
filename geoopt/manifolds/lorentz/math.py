@@ -3,8 +3,8 @@ import torch.jit
 
 @torch.jit.script
 def arcosh(x: torch.Tensor):
-    z = torch.sqrt(torch.clamp_min(x.pow(2) - 1.0, 1e-15))
-    return torch.log(x + z)
+    z = torch.sqrt(torch.clamp_min(x.pow(2) - 1.0, 1e-5))
+    return torch.log(x + z + 1e-5)
 
 
 def inner(u, v, *, keepdim=False, dim=-1):
