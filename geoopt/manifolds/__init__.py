@@ -15,3 +15,4 @@ from .product import ProductManifold
 from . import stereographic
 from . import scaled
 from .scaled import Scaled
+from .lorentz import Lorentz
