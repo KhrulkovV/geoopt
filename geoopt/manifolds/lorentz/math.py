@@ -4,7 +4,7 @@ import torch.jit
 @torch.jit.script
 def arcosh(x: torch.Tensor):
     z = torch.sqrt(torch.clamp_min(x.pow(2) - 1.0, 1e-5))
-    return torch.log(x + z + 1e-5)
+    return torch.log(x + z)
 
 
 def inner(u, v, *, keepdim=False, dim=-1):
@@ -314,7 +314,7 @@ def _expmap(x, u, k: torch.Tensor, dim: int = -1):
     nomin = _norm(u, keepdim=True, dim=dim)
     p = (
         torch.cosh(nomin / torch.sqrt(k)) * x
-        + torch.sqrt(k) * torch.sinh(nomin / torch.sqrt(k)) * u / nomin
+        + torch.sqrt(k) * torch.sinh(nomin / torch.sqrt(k)) * u / (nomin + 1e-5)
     )
     return p
 
@@ -344,7 +344,7 @@ def expmap0(u, *, k, dim=-1):
 def _expmap0(u, k: torch.Tensor, dim: int = -1):
     nomin = _norm(u, keepdim=True, dim=dim)
     l_v = torch.cosh(nomin / torch.sqrt(k)) * torch.sqrt(k)
-    r_v = torch.sqrt(k) * torch.sinh(nomin / torch.sqrt(k)) * u / nomin
+    r_v = torch.sqrt(k) * torch.sinh(nomin / torch.sqrt(k)) * u / (nomin + 1e-5)
     dn = r_v.size(dim) - 1
     p = torch.cat((l_v + r_v.narrow(dim, 0, 1), r_v.narrow(dim, 1, dn)), dim)
     return p
@@ -392,7 +392,7 @@ def logmap(x, y, *, k, dim=-1):
 def _logmap(x, y, k, dim: int = -1):
     dist_ = _dist(x, y, k=k, dim=dim, keepdim=True)
     nomin = y + 1.0 / k * _inner(x, y, keepdim=True) * x
-    denom = _norm(nomin, keepdim=True)
+    denom = _norm(nomin, keepdim=True) + 1e-5
     return dist_ * nomin / denom
 
 
@@ -423,7 +423,7 @@ def _logmap0(y, k, dim: int = -1):
     nomin_ = 1.0 / k * _inner0(y, k=k, keepdim=True) * torch.sqrt(k)
     dn = y.size(dim) - 1
     nomin = torch.cat((nomin_ + y.narrow(dim, 0, 1), y.narrow(dim, 1, dn)), dim)
-    denom = _norm(nomin, keepdim=True)
+    denom = _norm(nomin, keepdim=True) + 1e-5
     return dist_ * nomin / denom
 
 
@@ -456,7 +456,7 @@ def _logmap0back(x, k, dim: int = -1):
     nomin = torch.cat(
         (nomin_.narrow(dim, 0, 1) + torch.sqrt(k), nomin_.narrow(dim, 1, dn)), dim
     )
-    denom = _norm(nomin, keepdim=True)
+    denom = _norm(nomin, keepdim=True) + 1e-5
     return dist_ * nomin / denom
 
 
@@ -554,7 +554,7 @@ def parallel_transport0(y, v, *, k, dim=-1):
 def _parallel_transport0(y, v, k, dim: int = -1):
     lmap = _logmap0(y, k=k, dim=dim)
     nom = _inner(lmap, v, keepdim=True)
-    denom = _dist0(y, k=k, dim=dim, keepdim=True) ** 2
+    denom = _dist0(y, k=k, dim=dim, keepdim=True) ** 2 + 1e-5
     p = v - nom / denom * (lmap + _logmap0back(y, k=k, dim=dim))
     return p
 
@@ -588,7 +588,7 @@ def parallel_transport0back(x, v, *, k, dim: int = -1):
 def _parallel_transport0back(x, v, k, dim: int = -1):
     lmap = _logmap0back(x, k=k, dim=dim)
     nom = _inner(lmap, v, keepdim=True)
-    denom = _dist0(x, k=k, dim=dim, keepdim=True) ** 2
+    denom = _dist0(x, k=k, dim=dim, keepdim=True) ** 2 + 1e-5
     p = v - nom / denom * (lmap + _logmap0(x, k=k, dim=dim))
     return p
 
